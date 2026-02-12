@@ -1,0 +1,1 @@
+# tehisintellekti-rakendamise-projekt
