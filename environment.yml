@@ -1,0 +1,21 @@
+name: oisi_projekt
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - numpy
+  - pandas
+  - requests
+  - scikit-learn
+  - pip:
+      - streamlit
+      - openai
+      - ollama
+      - groq
+      - sentence-transformers
+      - langchain
+      - langchain-community
+      - python-dotenv
+      - watchdog
