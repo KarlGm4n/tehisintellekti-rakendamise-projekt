@@ -8,5 +8,5 @@ Kokku vigaseid päringuid: *7*
 |------------------------------------|------------|-----------------------------------|
 | Metaandmete filtreerimine         | 0          | 0%                                 |
 | RAG vektorotsing                  | 4          | 57.1%                                |
-| LLM vastuse genereerimine         | 3          | 50%                                |
+| LLM vastuse genereerimine         | 3          | 42.9%                                |
 | *Kokku*                         | *7*     | *100%*                            |
