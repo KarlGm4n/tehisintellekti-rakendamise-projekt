@@ -1,7 +1,10 @@
 import json
 import re
+import csv
+import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
+from datetime import datetime
 
 import numpy as np
 import pandas as pd
@@ -28,17 +31,25 @@ FILTER_FIELDS = {
 REQUIRED_FILTERS = ["semester", "eap", "keel"]
 OPTIONAL_FILTERS = ["linn", "oppeaste", "veebiope"]
 
-# Gemma-3 on OpenRouter ei toeta system/dev instructions; kasuta user-role'i.
 USE_SYSTEM_ROLE = not MODEL_NAME.startswith("google/gemma-3")
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
 
+# --- TAGASISIDE LOGIMISE FUNKTSIOON (sama stiil nagu step6) ---
+def log_feedback(timestamp, prompt, filters, context_ids, context_names, response, rating, error_category):
+    file_path = 'tagasiside_log.csv'
+    file_exists = os.path.isfile(file_path)
+    with open(file_path, 'a', newline='', encoding='utf-8') as f:
+        writer = csv.writer(f)
+        if not file_exists:
+            writer.writerow(['Aeg', 'Kasutaja päring', 'Filtrid', 'Leitud ID-d', 'Leitud ained', 'LLM Vastus', 'Hinnang', 'Veatüüp'])
+        writer.writerow([timestamp, prompt, filters, str(context_ids), str(context_names), response, rating, error_category])
+
 # pealkiri
 st.title("🎓 AI Kursuse Nõustaja")
 st.caption("RAG süsteem koos metaandmete filtreerimise ja järelvestlusega.")
 
-# embed mudel, täisandmestik ja vektorandmebaas läheb cache'i
 @st.cache_resource
 def get_models() -> Tuple[SentenceTransformer, pd.DataFrame, pd.DataFrame]:
     embedder = SentenceTransformer("BAAI/bge-m3")
@@ -163,28 +174,91 @@ with st.sidebar:
     st.metric("Tokenid kokku", st.session_state.total_tokens)
     st.metric("Hinnanguline kulu (€)", f"{st.session_state.total_cost:.5f}")
 
-# 1. alustame
+# seisundi initsialiseerimine
 if "messages" not in st.session_state:
     st.session_state.messages = []
-
 if "filter_stage" not in st.session_state:
     st.session_state.filter_stage = "collecting"
-
 if "filters" not in st.session_state:
     st.session_state.filters = {}
-
 if "clarification_count" not in st.session_state:
     st.session_state.clarification_count = 0
-
 if "last_results" not in st.session_state:
     st.session_state.last_results = None
 
-# 2. kuvame ajaloo
-for message in st.session_state.messages:
+# kuvame ajaloo koos kapotialuse info ja tagasiside vormidega
+for i, message in enumerate(st.session_state.messages):
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# 3. kuulame kasutaja sõnumit
+        # Kapotiinfo ja tagasiside ainult assistendi sõnumitele, millel on debug_info
+        if message["role"] == "assistant" and "debug_info" in message:
+            debug = message["debug_info"]
+
+            # 1. Kapoti all — vahesammude info
+            with st.expander("🔍 Vaata kapoti alla (RAG ja filtrid)"):
+                st.caption(f"**Aktiivsed filtrid:** {debug.get('filters', 'Info puudub')}")
+                st.write(f"**Samm 1 – Metaandmete filtreerimine:** filtrid jätsid andmestikku alles **{debug.get('filtered_count', 0)}** kursust.")
+
+                st.write("**Samm 2 – RAG vektorotsing (Top 5 leitud kursust):**")
+                context_df = debug.get('context_df', pd.DataFrame())
+                if not context_df.empty:
+                    display_cols = ['unique_ID', 'nimi_et', 'eap', 'semester', 'oppeaste', 'score']
+                    cols_to_show = [c for c in display_cols if c in context_df.columns]
+                    st.dataframe(context_df[cols_to_show], hide_index=True)
+                else:
+                    st.warning("Ühtegi kursust ei leitud (kas filtrid olid liiga karmid või andmestik tühi).")
+
+                st.write("**Samm 3 – LLM-ile saadetud süsteemiviip:**")
+                st.text_area(
+                    "Täpne prompt:",
+                    debug.get('system_prompt', ''),
+                    height=150,
+                    disabled=True,
+                    key=f"prompt_area_{i}"
+                )
+
+            # 2. Tagasiside kogumine
+            with st.expander("📝 Hinda vastust (Salvestab logisse)"):
+                with st.form(key=f"feedback_form_{i}"):
+                    rating = st.radio(
+                        "Hinnang vastusele:",
+                        ["👍 Hea", "👎 Halb"],
+                        horizontal=True,
+                        key=f"rating_{i}"
+                    )
+                    kato = st.selectbox(
+                        "Kui vastus oli halb, siis mis läks valesti?",
+                        [
+                            "",
+                            "Filtrid olid liiga karmid/valed (Samm 1)",
+                            "Otsing leidis valed ained (Samm 2 – RAG viga)",
+                            "LLM hallutsineeris/vastas valesti (Samm 3)"
+                        ],
+                        key=f"kato_{i}"
+                    )
+                    if st.form_submit_button("Salvesta hinnang"):
+                        ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        ctx_df = debug.get('context_df', pd.DataFrame())
+                        ctx_ids = ctx_df['unique_ID'].tolist() if not ctx_df.empty else []
+                        ctx_names = (
+                            ctx_df['nimi_et'].tolist()
+                            if (not ctx_df.empty and 'nimi_et' in ctx_df.columns)
+                            else []
+                        )
+                        log_feedback(
+                            ts,
+                            debug.get('user_prompt', ''),
+                            debug.get('filters', ''),
+                            ctx_ids,
+                            ctx_names,
+                            message["content"],
+                            rating,
+                            kato
+                        )
+                        st.success("Tagasiside salvestatud tagasiside_log.csv faili!")
+
+# kasutaja päringu töötlemine
 if prompt := st.chat_input("Kirjelda, mida soovid õppida..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
@@ -202,13 +276,18 @@ if prompt := st.chat_input("Kirjelda, mida soovid õppida..."):
             def run_rag(query_text: str) -> None:
                 with st.spinner("Otsin sobivaid kursusi..."):
                     merged_df = pd.merge(df, embeddings_df, on="unique_ID")
+
+                    # --- SAMM 1: Metaandmete filtreerimine ---
                     filtered_df = apply_filters(merged_df, st.session_state.filters)
+                    filtered_count = len(filtered_df)
 
                     if filtered_df.empty:
                         st.warning("Ühtegi kursust ei vasta filtritele.")
                         context_text = "Sobivaid kursusi ei leitud."
                         st.session_state.last_results = None
+                        results_df_display = pd.DataFrame()
                     else:
+                        # --- SAMM 2: RAG vektorotsing ---
                         query_vec = embedder.encode([query_text])[0]
                         filtered_df["score"] = cosine_similarity(
                             [query_vec], np.stack(filtered_df["embedding"])
@@ -216,27 +295,39 @@ if prompt := st.chat_input("Kirjelda, mida soovid õppida..."):
                         results_df = (
                             filtered_df.sort_values("score", ascending=False)
                             .head(RESULTS_N)
-                            .drop(["score", "embedding"], axis=1)
                         )
-                        st.session_state.last_results = results_df
-                        context_text = results_df.to_string()
+                        results_df_display = results_df.drop(columns=["embedding"], errors="ignore").copy()
+                        st.session_state.last_results = results_df_display
+                        context_text = results_df.drop(columns=["score", "embedding"], errors="ignore").to_string()
 
-                    filters_summary = json.dumps(
-                        st.session_state.filters, ensure_ascii=False
-                    )
+                    filters_summary = json.dumps(st.session_state.filters, ensure_ascii=False)
+
+                    # --- SAMM 3: LLM vastuse genereerimine ---
                     system_text = (
                         "Oled kursusenõustaja. Kasuta ainult antud kursuste infot. "
                         f"Filtrid: {filters_summary}.\n\nKursused:\n{context_text}"
                     )
-                    messages_to_send = build_messages(system_text, st.session_state.messages)
+                    messages_to_send = build_messages(
+                        system_text,
+                        [m for m in st.session_state.messages if "debug_info" not in m]
+                    )
 
                     try:
                         response_text, usage = call_chat(client, messages_to_send)
                         update_usage(usage)
                         st.markdown(response_text)
-                        st.session_state.messages.append(
-                            {"role": "assistant", "content": response_text}
-                        )
+                        st.session_state.messages.append({
+                            "role": "assistant",
+                            "content": response_text,
+                            "debug_info": {
+                                "user_prompt": query_text,
+                                "filters": filters_summary,
+                                "filtered_count": filtered_count,
+                                "context_df": results_df_display,
+                                "system_prompt": system_text,
+                            }
+                        })
+                        st.rerun()
                     except Exception as e:
                         st.error(f"Viga: {e}")
 
@@ -259,17 +350,12 @@ if prompt := st.chat_input("Kirjelda, mida soovid õppida..."):
                     ready = bool(payload.get("ready"))
                     next_question = payload.get("next_question", "").strip()
 
-                    if (
-                        ready
-                        or st.session_state.clarification_count >= MAX_CLARIFICATIONS
-                    ):
+                    if ready or st.session_state.clarification_count >= MAX_CLARIFICATIONS:
                         st.session_state.filter_stage = "ready"
                         run_rag(prompt)
                     else:
                         if not next_question:
-                            next_question = (
-                                "Kas saad täpsustada semestrit, EAP arvu ja keelt?"
-                            )
+                            next_question = "Kas saad täpsustada semestrit, EAP arvu ja keelt?"
                         st.session_state.clarification_count += 1
                         st.markdown(next_question)
                         st.session_state.messages.append(

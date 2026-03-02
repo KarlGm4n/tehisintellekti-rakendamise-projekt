@@ -1,0 +1,92 @@
+Aeg,Kasutaja päring,Filtrid,Leitud ID-d,Leitud ained,LLM Vastus,Hinnang,Veatüüp
+2026-03-02 11:34:37,sügis,"{""semester"": ""sügis"", ""eap"": 6, ""keel"": ""eesti keel""}","['LTOM.00.010', 'USUS.05.064', 'LTOM.03.005', 'HVKU.00.012_1', 'SVUH.00.041']","['Liigiline mitmekesisus Eestis ja Euroopas', 'Vana Testamendi eksegees', 'Geoloogiline kaardistamine ning regionaal- ja struktuurigeoloogiline välipraktika', 'Välitööd etnoloogias ja folkloristikas: meetodid ja analüüs', 'Eesti meediasüsteem ja meediakasutus']","
+Vabandust, ma ei leidnud kosmoseteemalist kursust, mis vastaks teie filtritele (sügis, 6 EAP, eesti keel). Antud kursuste nimekirjas ei ole kosmoseteemalist kursust.
+
+Kas soovite, et ma otsiksin muid kursusi?",👎 Halb,Otsing leidis valed ained (Samm 2 – RAG viga)
+2026-03-02 11:41:23,aga kevadel?,"{""semester"": ""sügis"", ""eap"": 6, ""keel"": ""eesti keel""}","['USUS.05.064', 'MTMM.00.214', 'HVLC.03.020', 'HVLC.08.010', 'LOKT.00.004']","['Vana Testamendi eksegees', 'Diferentsiaalvõrrandid', 'Itaalia keel algtasemele I, tase 0 > A1.1', 'Jaapani keel algtasemele III, tase A1.2 > A2.1', 'Üldine ja anorgaaniline keemia']","
+
+Vabandust, ma ei leidnud kosmoseteemalisi aineid, mis vastaksid Sinu kriteeriumitele (sügis, 6 EAP, eesti keel). 
+
+Kevadel sobivaid aineid on samuti hetkel puudul. 
+
+Antud kursuste andmebaasis ei ole kosmoseteemalisi aineid. Soovitan otsida kursusi otse ülikooli kodulehelt või teistest allikatest.",👎 Halb,Otsing leidis valed ained (Samm 2 – RAG viga)
+2026-03-02 11:47:53,soovita magistriaineid sügisel,"{""semester"": ""sügis"", ""eap"": 6, ""keel"": ""eesti keel""}","['LTOM.00.012', 'LTFY.02.018', 'HVKU.00.012_1', 'LOOM.03.124', 'LTOM.00.011']","['Magistriseminar', 'Energiafüüsika', 'Välitööd etnoloogias ja folkloristikas: meetodid ja analüüs', 'Geotektoonika ja regionaalgeoloogia', 'Liigilise mitmekesisuse praktikum']","
+Vabandust segaduse pärast! Minu vastused olid korraga katkenud.
+
+Antud kursuste loetelust sügisel pakutavaid 6 EAP suurusi aineid eesti keeles, mis võiksid olla seotud kosmosetemaatikaga, ei ole. 
+
+Kõige lähedasem teemale on **LOOM.03.124 Geotektoonika ja regionaalgeoloogia**, mis puudutab Maa ehitust ja arengut, mis on seotud ka planeetide tekkimisega. See on küll geoloogiline, mitte otseselt kosmoseteemaline, kuid võib olla huvi pakkuv.
+
+Kahjuks puuduvad andmed kevadsemestri kursuste kohta.
+",👎 Halb,LLM hallutsineeris/vastas valesti (Samm 3)
+2026-03-02 12:12:48,"midagi mis ei ole seotud astronoomiaga, aga it tudengile meelepärane magistriaine?","{""semester"": ""sügis"", ""eap"": 6, ""keel"": ""eesti keel""}","['LOOM.03.119', 'LTOM.00.012', 'LTFY.02.018', 'LTFY.04.003', 'LOOM.03.124']","['Mineraloogia II', 'Magistriseminar', 'Energiafüüsika', 'Statistilise füüsika magistrikursus', 'Geotektoonika ja regionaalgeoloogia']","Arvestades, et oled IT tudeng ja otsid sügisel pakutavat 6 EAP suurust magistriainet eesti keeles, siis pakun järgnevaid variante, mis võiksid olla sinu huvidele vastavad:
+
+*   **LTFY.02.018 Energiafüüsika:** See kursus võib olla huvitav, kui oled seotud modelleerimise või andmetöötlusega, kuna energiafüüsika nõuab arvutuslikke meetodeid.
+*   **LTFY.04.003 Statistilise füüsika magistrikursus:** See kursus võib olla huvitav, kui oled seotud andmeanalüüsiga või masinõppega, kuna statistiline füüsika kasutab matemaatilisi ja arvutuslikke meetodeid.
+*   **LOOM.03.124 Geotektoonika ja regionaalgeoloogia:** See kursus võib olla huvitav, kui oled seotud andmevisualiseerimisega või geoinformaatiliste süsteemidega, kuna geoloogilised andmed on tihti suured ja keerulised.
+*   **LTOM.00.012 Magistriseminar:** See on üldisem kursus, mis arendab akadeemilisi oskusi ja võib olla kasulik igale magistrandile.
+
+Need on kõik 6 EAP suurused kursused, mida pakutakse sügisel eesti keeles. Loodan, et see aitab sul otsustada!",👎 Halb,Otsing leidis valed ained (Samm 2 – RAG viga)
+2026-03-02 12:15:39,"aga bakalaureuse IT aineid, mis on seotud võrkudega?","{""semester"": ""sügis"", ""eap"": 6, ""keel"": ""eesti keel""}","['LOFY.03.079', 'SVUH.00.052_1', 'SVUH.00.178', 'LTAT.03.002', 'SVMJ.00.004_1']","['Arvuti arhitektuur ja riistvara I', 'Bakalaureusetöö sotsioloogia ja infoteaduste erialal', 'Sotsiaalsed digipädevused', 'Sissejuhatus erialasse', 'Bakalaureusetöö']","
+Vabandust, ma ei saa aru. Palun korrake oma küsimust. Ma olen kursusenõustaja ja saan soovitada ainult antud kursuste infot kasutades. Ma ei saa soovitada magistriaineid väljaspool antud kursuste loetelu.
+
+Teie viimane küsimus puudutab bakalaureuse IT aineid, mis on seotud võrkudega. Kahjuks ei ole mul praegu andmeid võrkudega seotud kursuste kohta. Palun andke mulle rohkem infot, et ma saaksin teid aidata.",👎 Halb,LLM hallutsineeris/vastas valesti (Samm 3)
+2026-03-02 12:16:43,"bakalaureuse astme aine, mis on võrkudega seotud","{""semester"": ""sügis"", ""eap"": 6, ""keel"": ""eesti keel""}","['ARAN.01.028', 'OIEO.04.138', 'MTMS.02.003', 'KKSB.02.042', 'MVFA.00.031']","['Anatoomia', 'Lepinguvälised võlasuhted', 'Juhuslikud protsessid', 'Spordifüsioloogia', 'Farmatseutiline keemia II (2 osa)']","
+Vabandust, ma ei saa otsida kosmoseteemalisi aineid, kuna need andmed puuduvad.
+
+Filtritega: semester = sügis, eap = 6, keel = eesti keel, on saadaval järgmised kursused:
+
+*   **Anatoomia** (ARAN.01.028)
+*   **Lepinguvälised võlasuhted** (OIEO.04.138)
+*   **Juhuslikud protsessid** (MTMS.02.003)
+*   **Spordifüsioloogia** (KKSB.02.042)
+*   **Farmatseutiline keemia II (2 osa)** (MVFA.00.031)
+
+**Magistriaineid IT tudengile (sügis):**
+
+Kahjuks ei saa ma soovitada magistriaineid, kuna andmebaasis pole magistriainete kohta infot.
+
+**Bakalaureuse IT ained (võrgud):**
+
+Andmebaasis ei ole infot võrkudega seotud bakalaureuseainete kohta.",👎 Halb,Otsing leidis valed ained (Samm 2 – RAG viga)
+2026-03-02 12:18:11,võrgutehnoloogia I on ju olemas?,"{""semester"": ""sügis"", ""eap"": 6, ""keel"": ""eesti keel""}","['LOFY.03.079', 'LTAT.01.002', 'SVUH.00.253', 'MTMM.00.038', 'LTMS.00.081']","['Arvuti arhitektuur ja riistvara I', 'Keeletehnoloogia', 'Kommunikatsioonitöö I', 'Algebra I', 'Kõrgem matemaatika I arvutitehnikutele']","
+
+Vabandust, ma ei leidnud andmebaasist kosmoseteemalisi aineid.
+
+**Magistriained sügisel IT tudengile (ei ole astronoomiaga seotud):**
+
+Kahjuks ei ole mul andmebaasis piisavalt infot, et soovitada magistriaineid, mis oleksid IT tudengile meelepärased ja ei oleks seotud astronoomiaga. Ma ei tea sinu konkreetseid huvisid IT valdkonnas.
+
+**Bakalaureuse IT ained, mis on seotud võrkudega:**
+
+Jah, andmebaasis on olemas võrgutehnoloogia I.
+
+**Võrgutehnoloogia I (kursuse ID 1672):**
+
+*   **Aine kood:** LOFY.03.079
+*   **Nimi:** Arvuti arhitektuur ja riistvara I
+*   **EAP:** 6.0
+*   **Semester:** sügis
+*   **Hindamisviis:** Eristav (A, B, C, D, E, F, mi)
+*   **Keel:** eesti keel
+
+**NB!** See kursus on arvuti arhitektuuri ja riistvara kohta, mitte otseselt võrgutehnoloogia kohta.
+
+Palun täpsusta oma huvisid, et saaksin paremini soovitada sobivaid aineid.",👎 Halb,LLM hallutsineeris/vastas valesti (Samm 3)
+2026-03-02 12:19:20,tahan keemiat õppida,"{""semester"": ""sügis"", ""eap"": 6, ""keel"": ""eesti keel""}","['LOKT.07.010', 'LOKT.10.012', 'LOKT.08.001', 'LOKT.06.010', 'LOKT.02.037']","['Keemia alused', 'Bioorgaaniline keemia', 'Teoreetiline keemia', 'Analüütiline keemia I', 'Füüsikaline keemia 1. osa']","Antud kursuste loetelust leidub keemiaga seotud kursuseid:
+
+*   **Keemia alused** (LOKT.07.010) - 6 EAP, sügis, eesti keel. Kursuse eesmärk on anda üldine ülevaade keemia põhimõistetest.
+*   **Bioorgaaniline keemia** (LOKT.10.012) - 6 EAP, sügis, eesti keel. Eeldab Orgaaniline keemia I läbimist.
+*   **Teoreetiline keemia** (LOKT.08.001) - 6 EAP, sügis, eesti keel. Eeldab Keemia aluste läbimist.
+*   **Analüütiline keemia I** (LOKT.06.010) - 6 EAP, sügis, eesti keel.
+
+Milline neist tundub teile kõige sobivam?",👍 Hea,
+2026-03-02 12:22:13,aga füüsika aineid?,"{""semester"": ""sügis"", ""eap"": 6, ""keel"": ""eesti keel""}","['LOFY.01.002', 'ARFA.02.122', 'LOKT.02.037', 'LOFY.01.009', 'LTFY.02.018']","['Füüsikaline maailmapilt', 'Füüsikaline farmaatsia', 'Füüsikaline keemia 1. osa', 'Mikromaailma füüsika', 'Energiafüüsika']","Antud kursuste infos on sügisel pakutavaid füüsika aineid järgmised, mis vastavad filtritele (semester: sügis, eap: 6, keel: eesti keel):
+
+*   **LOFY.01.002 Füüsikaline maailmapilt** (6 EAP) - Üliõpilaste varasemaid füüsikateadmisi eeldamata viiakse nad kiiresti kaasaegse füüsika põhiideedeni.
+*   **ARFA.02.122 Füüsikaline farmaatsia** (6 EAP) - Ravimite biofarmatseutiline kvaliteet ja ravimvormi valmistamiseks vajalikud tehnoloogilised meetodid sõltuvad suurel määral raviainete ja abiainete füsikokeemilistest omadustest.
+*   **LOKT.02.037 Füüsikaline keemia 1. osa** (6 EAP) - Keemiliste ja füüsikaliste protsesside kõige üldisemaid seaduspärasusi käsitletakse.
+*   **LOFY.01.009 Mikromaailma füüsika** (6 EAP) - Tutvutakse aatomite, aatomituumade ja elementaarosakeste maailmas toimuvate põhiliste füüsikaliste protsessidega.
+*   **LTFY.02.018 Energiafüüsika** (6 EAP) - Mõeldud füüsika magistritaseme üliõpilastele, kes soovivad mõista inimkasutuses oleva ning üldiselt looduses ringleva energia allikate liike.
+
+Milline neist tundub kõige huvitavam?",👍 Hea,
