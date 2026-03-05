@@ -6,6 +6,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 from datetime import datetime
 
+from filters_utils import get_allowed_values, apply_filters
+
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -74,53 +76,8 @@ def update_usage(usage: Any) -> None:
     prompt_tokens = getattr(usage, "prompt_tokens", 0) or 0
     completion_tokens = getattr(usage, "completion_tokens", 0) or 0
     st.session_state.total_tokens += prompt_tokens + completion_tokens
-    st.session_state.total_cost += (
-        prompt_tokens * EUR_PER_INPUT_TOKEN + completion_tokens * EUR_PER_OUTPUT_TOKEN
-    )
 
-def get_allowed_values(source_df: pd.DataFrame) -> Dict[str, List[str]]:
-    values: Dict[str, List[str]] = {}
-    for key, meta in FILTER_FIELDS.items():
-        if meta["type"] == "categorical":
-            col = meta["column"]
-            uniques = (
-                source_df[col]
-                .dropna()
-                .astype(str)
-                .sort_values()
-                .unique()
-                .tolist()
-            )
-            values[key] = uniques
-    return values
-
-def apply_filters(source_df: pd.DataFrame, filters: Dict[str, Any]) -> pd.DataFrame:
-    mask = pd.Series(True, index=source_df.index)
-    for key, value in filters.items():
-        if key not in FILTER_FIELDS:
-            continue
-        if value in (None, "", "any", "*"):
-            continue
-        meta = FILTER_FIELDS[key]
-        col = meta["column"]
-        if meta["type"] == "numeric":
-            if isinstance(value, list):
-                nums = [float(v) for v in value if v not in (None, "")]
-                if nums:
-                    mask &= source_df[col].isin(nums)
-            else:
-                mask &= source_df[col] == float(value)
-        else:
-            mask &= source_df[col].astype(str).str.lower() == str(value).lower()
-    return source_df[mask].copy()
-
-def merge_filters(current: Dict[str, Any], new_values: Dict[str, Any]) -> Dict[str, Any]:
-    merged = dict(current)
-    for key, value in new_values.items():
-        if value in (None, "", "any", "*"):
-            continue
-        merged[key] = value
-    return merged
+    st.session_state.total_cost += prompt_tokens * EUR_PER_INPUT_TOKEN + completion_tokens * EUR_PER_OUTPUT_TOKEN
 
 def call_chat(client: OpenAI, messages: List[Dict[str, str]]) -> Tuple[str, Any]:
     response = client.chat.completions.create(
@@ -131,6 +88,14 @@ def call_chat(client: OpenAI, messages: List[Dict[str, str]]) -> Tuple[str, Any]
     )
     text = response.choices[0].message.content
     return text, response.usage
+
+def merge_filters(current: Dict[str, Any], new_values: Dict[str, Any]) -> Dict[str, Any]:
+    merged = dict(current)
+    for key, value in new_values.items():
+        if value in (None, "", "any", "*"):
+            continue
+        merged[key] = value
+    return merged
 
 def build_messages(system_text: str, history: List[Dict[str, str]]) -> List[Dict[str, str]]:
     if USE_SYSTEM_ROLE:
@@ -144,7 +109,15 @@ def build_filter_system_prompt(
     current_filters: Dict[str, Any],
     clarifications_left: int,
 ) -> str:
-    return (
+    # Suggest defaults for missing required filters
+    defaults = {}
+    if not current_filters.get("eap"):
+        defaults["eap"] = allowed_values.get("eap", [6])[0] if allowed_values.get("eap") else 6
+    if not current_filters.get("semester"):
+        defaults["semester"] = allowed_values.get("semester", ["kevad"])[0] if allowed_values.get("semester") else "kevad"
+    if not current_filters.get("keel"):
+        defaults["keel"] = allowed_values.get("keel", ["ET"])[0] if allowed_values.get("keel") else "ET"
+    prompt = (
         "Oled filtrite kogumise assistent. Eesmärk: saada metaandmete filtrid "
         "kursuste otsinguks. Kohustuslikud filtrid: semester, eap, keel. "
         "Valikulised filtrid: linn, oppeaste, veebiope. "
@@ -156,12 +129,31 @@ def build_filter_system_prompt(
         "{\"ready\": bool, \"filters\": {..}, \"next_question\": string}. "
         "Kui oled valmis, siis next_question peab olema tühi. "
         f"Lubatud väärtused: {json.dumps(allowed_values, ensure_ascii=False)}. "
-        f"Praegused filtrid: {json.dumps(current_filters, ensure_ascii=False)}."
+        f"Praegused filtrid: {json.dumps(current_filters, ensure_ascii=False)}. "
+        f"Soovitatud vaikimisi: {json.dumps(defaults, ensure_ascii=False)}."
     )
+    return prompt
 
 # külgriba
+    st.markdown("---")
+    st.subheader("🎲 Juhuslik kursuse soovitus")
+    if st.button("Soovita juhuslikku kursust", key="random_course_btn"):
+        import random
+        if not df.empty:
+            course = df.sample(1).iloc[0]
+            st.success(f"**{course['nimi_et']}** ({course['unique_ID']})")
+            st.caption(f"EAP: {course.get('eap', '-')}, Semester: {course.get('semester', '-')}, Keel: {course.get('keel', '-')}")
+            st.write(course.get('kirjeldus', 'Kirjeldus puudub'))
+        else:
+            st.warning("Kursuste andmestik puudub.")
+    st.markdown("---")
+    st.markdown("### Viimati kasutatud filtrid")
+    if "filters" in st.session_state and st.session_state.filters:
+        for k, v in st.session_state.filters.items():
+            st.caption(f"{k}: {v}")
+
 with st.sidebar:
-    api_key = st.text_input("OpenRouter API Key", type="password")
+    api_key = st.text_input("OpenRouter API Key", type="password", key="sidebar_api_key_unique_1")
     st.markdown("### Filtrite olek")
     if "filters" in st.session_state and st.session_state.filters:
         st.json(st.session_state.filters)
@@ -173,6 +165,32 @@ with st.sidebar:
         st.session_state.total_cost = 0.0
     st.metric("Tokenid kokku", st.session_state.total_tokens)
     st.metric("Hinnanguline kulu (€)", f"{st.session_state.total_cost:.5f}")
+
+    st.markdown("---")
+    st.subheader("🎲 Juhuslik kursuse soovitus")
+    if st.button("Soovita juhuslikku kursust", key="random_course_btn"):
+        import random
+        if not df.empty:
+            course = df.sample(1).iloc[0]
+            st.success(f"**{course['nimi_et']}** ({course['unique_ID']})")
+            st.caption(f"EAP: {course.get('eap', '-')}, Semester: {course.get('semester', '-')}, Keel: {course.get('keel', '-')}")
+            st.write(course.get('kirjeldus', 'Kirjeldus puudub'))
+        else:
+            st.warning("Kursuste andmestik puudub.")
+    st.markdown("---")
+
+    st.subheader("Testikomplekt")
+    import benchmark_runner
+    try:
+        benchmark_cases = benchmark_runner.load_benchmark_cases()
+        total_cases = len(benchmark_cases)
+    except Exception:
+        total_cases = 0
+    n_cases = st.slider("Mitu testjuhtumit käivitada", min_value=0, max_value=total_cases, value=total_cases, step=1)
+    run_bench = st.button("Käivita testikomplekt")
+    if run_bench and total_cases > 0:
+        st.session_state.benchmark_results = benchmark_runner.run_benchmark(embedder, df, embeddings_df, n_cases)
+        st.success(f"Testikomplekt jooksutatud: {n_cases} juhtumit.")
 
 # seisundi initsialiseerimine
 if "messages" not in st.session_state:
@@ -187,76 +205,24 @@ if "last_results" not in st.session_state:
     st.session_state.last_results = None
 
 # kuvame ajaloo koos kapotialuse info ja tagasiside vormidega
-for i, message in enumerate(st.session_state.messages):
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
 
-        # Kapotiinfo ja tagasiside ainult assistendi sõnumitele, millel on debug_info
-        if message["role"] == "assistant" and "debug_info" in message:
-            debug = message["debug_info"]
-
-            # 1. Kapoti all — vahesammude info
-            with st.expander("🔍 Vaata kapoti alla (RAG ja filtrid)"):
-                st.caption(f"**Aktiivsed filtrid:** {debug.get('filters', 'Info puudub')}")
-                st.write(f"**Samm 1 – Metaandmete filtreerimine:** filtrid jätsid andmestikku alles **{debug.get('filtered_count', 0)}** kursust.")
-
-                st.write("**Samm 2 – RAG vektorotsing (Top 5 leitud kursust):**")
-                context_df = debug.get('context_df', pd.DataFrame())
-                if not context_df.empty:
-                    display_cols = ['unique_ID', 'nimi_et', 'eap', 'semester', 'oppeaste', 'score']
-                    cols_to_show = [c for c in display_cols if c in context_df.columns]
-                    st.dataframe(context_df[cols_to_show], hide_index=True)
-                else:
-                    st.warning("Ühtegi kursust ei leitud (kas filtrid olid liiga karmid või andmestik tühi).")
-
-                st.write("**Samm 3 – LLM-ile saadetud süsteemiviip:**")
-                st.text_area(
-                    "Täpne prompt:",
-                    debug.get('system_prompt', ''),
-                    height=150,
-                    disabled=True,
-                    key=f"prompt_area_{i}"
-                )
-
-            # 2. Tagasiside kogumine
-            with st.expander("📝 Hinda vastust (Salvestab logisse)"):
-                with st.form(key=f"feedback_form_{i}"):
-                    rating = st.radio(
-                        "Hinnang vastusele:",
-                        ["👍 Hea", "👎 Halb"],
-                        horizontal=True,
-                        key=f"rating_{i}"
-                    )
-                    kato = st.selectbox(
-                        "Kui vastus oli halb, siis mis läks valesti?",
-                        [
-                            "",
-                            "Filtrid olid liiga karmid/valed (Samm 1)",
-                            "Otsing leidis valed ained (Samm 2 – RAG viga)",
-                            "LLM hallutsineeris/vastas valesti (Samm 3)"
-                        ],
-                        key=f"kato_{i}"
-                    )
-                    if st.form_submit_button("Salvesta hinnang"):
-                        ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        ctx_df = debug.get('context_df', pd.DataFrame())
-                        ctx_ids = ctx_df['unique_ID'].tolist() if not ctx_df.empty else []
-                        ctx_names = (
-                            ctx_df['nimi_et'].tolist()
-                            if (not ctx_df.empty and 'nimi_et' in ctx_df.columns)
-                            else []
-                        )
-                        log_feedback(
-                            ts,
-                            debug.get('user_prompt', ''),
-                            debug.get('filters', ''),
-                            ctx_ids,
-                            ctx_names,
-                            message["content"],
-                            rating,
-                            kato
-                        )
-                        st.success("Tagasiside salvestatud tagasiside_log.csv faili!")
+# Kuvame benchmarki tulemused, kui need on olemas
+if "benchmark_results" in st.session_state and st.session_state.benchmark_results:
+    st.subheader("Testikomplekti tulemused")
+    results = st.session_state.benchmark_results
+    passed = sum(r.passed for r in results)
+    st.write(f"\nÕigeid: {passed} / {len(results)}")
+    for i, r in enumerate(results, 1):
+        with st.expander(f"Juhtum {i}: {'✅' if r.passed else '❌'}"):
+            st.write(f"Päring: {r.case.query}")
+            st.write(f"Oodatud ID-d: {', '.join(r.case.expected_ids) if r.case.expected_ids else '-'}")
+            st.write(f"Leitud ID-d: {', '.join(r.found_ids) if r.found_ids else '-'}")
+else:
+    # ...existing code for chat history and feedback...
+    for i, message in enumerate(st.session_state.messages):
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+            # ...existing code for debug info and feedback...
 
 # kasutaja päringu töötlemine
 if prompt := st.chat_input("Kirjelda, mida soovid õppida..."):
